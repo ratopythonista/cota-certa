@@ -35,3 +35,15 @@ _Avoid_: Juiz, árbitro.
 **Wallet (Carteira)**:
 O livro-razão que registra o saldo disponível em Reais do usuário autenticado, depósitos pendentes (Pix/Cripto) e custódia de Cotas.
 _Avoid_: Conta, perfil, extrato.
+
+**External Address (Endereço Externo)**:
+O identificador público na blockchain pertencente a um usuário e vinculado à sua Carteira para validação de depósitos.
+_Avoid_: Chave pública, hash de conta, endereço de carteira.
+
+**Deposit Vault (Cofre de Depósito)**:
+O endereço público central controlado pela plataforma para recepção de transferências de Ativos Cripto.
+_Avoid_: Carteira quente, hot wallet, cofre central, endereço da banca.
+
+**Crypto Asset (Ativo Cripto)**:
+O token padronizado (ERC-20) ou unidade de valor nativa de rede aceito para conversão no saldo da Carteira.
+_Avoid_: Moeda digital, criptomoeda, coin.
