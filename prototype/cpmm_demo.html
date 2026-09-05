@@ -35,7 +35,7 @@
     }
 
     .container {
-      max-width: 980px;
+      max-width: 1040px;
       margin: 0 auto;
     }
 
@@ -87,6 +87,7 @@
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 20px;
+      margin-bottom: 24px;
     }
 
     .card-title {
@@ -226,6 +227,7 @@
       gap: 8px;
       border-bottom: 1px solid var(--border);
       margin-bottom: 16px;
+      overflow-x: auto;
     }
 
     .tab-btn {
@@ -237,6 +239,7 @@
       font-weight: 600;
       cursor: pointer;
       border-bottom: 2px solid transparent;
+      white-space: nowrap;
     }
 
     .tab-btn.active {
@@ -271,6 +274,7 @@
 
     .step-info {
       flex: 1;
+      margin-right: 16px;
     }
 
     .step-title {
@@ -283,8 +287,32 @@
       color: var(--text-muted);
     }
 
+    .table-container {
+      overflow-x: auto;
+      margin-top: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+
     .log-box {
-      margin-top: 24px;
       background: #090d16;
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -309,6 +337,26 @@
       font-size: 0.85rem;
       margin-top: 12px;
     }
+
+    .math-trace-box {
+      background: #0b1222;
+      border: 1px solid #1e3a8a;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: #e2e8f0;
+    }
+
+    .math-trace-title {
+      color: var(--primary);
+      font-weight: 700;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      letter-spacing: 0.05em;
+    }
   </style>
 </head>
 <body>
@@ -324,7 +372,7 @@
     <!-- ESTADO ATUAL DO AMM -->
     <div class="grid">
       <!-- Painel 1: Reservas e Probabilidade -->
-      <div class="card">
+      <div class="card" style="margin-bottom: 0;">
         <div class="card-title">
           <span>Estado da Pool de Liquidez</span>
           <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="resetPool()">Reiniciar Pool</button>
@@ -365,7 +413,7 @@
       </div>
 
       <!-- Painel 2: Carteira do Usuário & Cofre -->
-      <div class="card">
+      <div class="card" style="margin-bottom: 0;">
         <div class="card-title">
           <span>Carteira do Usuário & Cofre</span>
           <span id="market-status-badge" style="font-size: 0.75rem; color: #38bdf8;">Mercado Aberto</span>
@@ -396,8 +444,16 @@
       </div>
     </div>
 
+    <!-- MEMORIAL DE CÁLCULO PASSO A PASSO (AO VIVO) -->
+    <div class="math-trace-box" id="math-trace-container">
+      <div class="math-trace-title">📐 Memorial de Cálculo Passo a Passo da Última Operação</div>
+      <div id="math-trace-content">
+        [Aguardando primeira operação para exibir detalhamento das fórmulas, substituições e frações resolvidas.]
+      </div>
+    </div>
+
     <!-- PAINEL DE JOGO LIVRE (FREE-PLAY) -->
-    <div class="card" style="margin-bottom: 24px;">
+    <div class="card">
       <div class="card-title">Operações Livres (Free-Play)</div>
       
       <div class="grid" style="margin-bottom: 0;">
@@ -441,10 +497,11 @@
       <div class="card-title">Cenários Guiados de Validação</div>
       
       <div class="tabs">
-        <button class="tab-btn active" onclick="switchScenario(1)">1. Caminho Feliz (Compra)</button>
-        <button class="tab-btn" onclick="switchScenario(2)">2. Simetria Reversa (Ida e Volta)</button>
-        <button class="tab-btn" onclick="switchScenario(3)">3. Ordem Gigante & Slippage</button>
+        <button class="tab-btn active" onclick="switchScenario(1)">1. Caminho Feliz</button>
+        <button class="tab-btn" onclick="switchScenario(2)">2. Simetria Reversa</button>
+        <button class="tab-btn" onclick="switchScenario(3)">3. Ordem Gigante</button>
         <button class="tab-btn" onclick="switchScenario(4)">4. Liquidação a R$ 1,00</button>
+        <button class="tab-btn" onclick="switchScenario(5)">5. Multiusuário (Alice, Bob, Charlie)</button>
       </div>
 
       <!-- Cenário 1 -->
@@ -524,6 +581,100 @@
           </div>
         </div>
       </div>
+
+      <!-- Cenário 5: Multiusuário (Alice, Bob, Charlie) -->
+      <div id="scenario-5" class="scenario-content" style="display: none;">
+        <div class="scenario-desc">
+          <strong>Objetivo:</strong> Simular um mercado vivo com 3 participantes distintos (Alice, Bob e Charlie) competindo em lados opostos, executando vendas parciais e demonstrando que a liquidação final pelo Oráculo distribui exatamente o colateral do cofre sem resíduo.
+        </div>
+        <div class="step-list">
+          <div class="step-item">
+            <div class="step-info">
+              <div class="step-title">Passo 1: Alice compra Sim com R$ 200,00</div>
+              <div class="step-detail">Alice recebe 366,67 cotas Sim. O preço de Sim sobe para 59,02%.</div>
+            </div>
+            <button class="btn btn-yes" id="btn-scen5-step1" onclick="runScenario5Step1()">1. Alice Compra Sim</button>
+          </div>
+          <div class="step-item">
+            <div class="step-info">
+              <div class="step-title">Passo 2: Bob compra Não com R$ 300,00</div>
+              <div class="step-detail">Bob aproveita a cota Não descontada (40,98%) e adquire 617,65 cotas Não, empurrando Não para 56,23%.</div>
+            </div>
+            <button class="btn btn-no" id="btn-scen5-step2" disabled onclick="runScenario5Step2()">2. Bob Compra Não</button>
+          </div>
+          <div class="step-item">
+            <div class="step-info">
+              <div class="step-title">Passo 3: Charlie compra Sim com R$ 100,00</div>
+              <div class="step-detail">Charlie aproveita o recuo de Sim para 43,77% e compra 215,37 cotas Sim.</div>
+            </div>
+            <button class="btn btn-yes" id="btn-scen5-step3" disabled onclick="runScenario5Step3()">3. Charlie Compra Sim</button>
+          </div>
+          <div class="step-item">
+            <div class="step-info">
+              <div class="step-title">Passo 4: Alice vende 50% de suas cotas Sim (183,33 cotas)</div>
+              <div class="step-detail">Alice realiza lucro parcial: recebe R$ 85,85 em dinheiro via fórmula quadrática analítica.</div>
+            </div>
+            <button class="btn btn-outline" id="btn-scen5-step4" disabled onclick="runScenario5Step4()">4. Alice Realiza 50%</button>
+          </div>
+          <div class="step-item">
+            <div class="step-info">
+              <div class="step-title">Passo 5: Oráculo resolve o Mercado como SIM</div>
+              <div class="step-detail">Liquidação geral: Alice, Charlie e o LP resgatam seus valores a R$ 1,00/cota. Cofre zera perfeitamente!</div>
+            </div>
+            <button class="btn btn-neutral" id="btn-scen5-step5" disabled onclick="runScenario5Step5()">5. Liquidação Final</button>
+          </div>
+        </div>
+
+        <!-- Tabela Multiusuário -->
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Participante</th>
+                <th>Saldo BRL</th>
+                <th>Cotas Sim</th>
+                <th>Cotas Não</th>
+                <th>Total Resgatado</th>
+                <th>Resultado Líquido (P&L)</th>
+              </tr>
+            </thead>
+            <tbody id="multi-user-tbody">
+              <tr>
+                <td>Alice</td>
+                <td>R$ 500,00</td>
+                <td>0,00</td>
+                <td>0,00</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>Bob</td>
+                <td>R$ 500,00</td>
+                <td>0,00</td>
+                <td>0,00</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>Charlie</td>
+                <td>R$ 500,00</td>
+                <td>0,00</td>
+                <td>0,00</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>Pool LP</td>
+                <td>R$ 1.000,00 (Reserva)</td>
+                <td>1.000,00</td>
+                <td>1.000,00</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <!-- LOG DE EXECUÇÃO -->
@@ -562,6 +713,8 @@
         const sharesFromPool = this.x - xNew;
         const totalShares = investment + sharesFromPool;
 
+        const xOld = this.x;
+        const yOld = this.y;
         this.x = xNew;
         this.y = yNew;
         this.totalCollateral += investment;
@@ -575,7 +728,16 @@
           avgPrice,
           pBefore,
           pAfter,
-          slippage
+          slippage,
+          details: {
+            investment,
+            yOld,
+            yNew,
+            xOld,
+            xNew,
+            sharesFromPool,
+            k: this.k
+          }
         };
       }
 
@@ -587,6 +749,8 @@
         const sharesFromPool = this.y - yNew;
         const totalShares = investment + sharesFromPool;
 
+        const xOld = this.x;
+        const yOld = this.y;
         this.x = xNew;
         this.y = yNew;
         this.totalCollateral += investment;
@@ -600,7 +764,16 @@
           avgPrice,
           pBefore,
           pAfter,
-          slippage
+          slippage,
+          details: {
+            investment,
+            xOld,
+            xNew,
+            yOld,
+            yNew,
+            sharesFromPool,
+            k: this.k
+          }
         };
       }
 
@@ -613,6 +786,9 @@
         if (disc < 0) throw new Error("Discriminante negativo");
         
         const deltaB = (b - Math.sqrt(disc)) / 2;
+        const xOld = this.x;
+        const yOld = this.y;
+
         this.x = this.x + (shares - deltaB);
         this.y = this.y - deltaB;
         this.totalCollateral -= deltaB;
@@ -626,7 +802,20 @@
           avgPrice,
           pBefore,
           pAfter,
-          slippage
+          slippage,
+          details: {
+            shares,
+            b,
+            c,
+            disc,
+            sqrtDisc: Math.sqrt(disc),
+            deltaB,
+            xOld,
+            xNew: this.x,
+            yOld,
+            yNew: this.y,
+            k: this.k
+          }
         };
       }
 
@@ -639,6 +828,9 @@
         if (disc < 0) throw new Error("Discriminante negativo");
         
         const deltaB = (b - Math.sqrt(disc)) / 2;
+        const xOld = this.x;
+        const yOld = this.y;
+
         this.y = this.y + (shares - deltaB);
         this.x = this.x - deltaB;
         this.totalCollateral -= deltaB;
@@ -652,7 +844,20 @@
           avgPrice,
           pBefore,
           pAfter,
-          slippage
+          slippage,
+          details: {
+            shares,
+            b,
+            c,
+            disc,
+            sqrtDisc: Math.sqrt(disc),
+            deltaB,
+            xOld,
+            xNew: this.x,
+            yOld,
+            yNew: this.y,
+            k: this.k
+          }
         };
       }
     }
@@ -665,6 +870,11 @@
       brl: 1000,
       yesShares: 0,
       noShares: 0
+    };
+    let multiUsers = {
+      Alice: { brl: 500, yes: 0, no: 0, initialBrl: 500, payout: null },
+      Bob: { brl: 500, yes: 0, no: 0, initialBrl: 500, payout: null },
+      Charlie: { brl: 500, yes: 0, no: 0, initialBrl: 500, payout: null }
     };
     let lastBoughtSharesScen2 = 0;
 
@@ -686,6 +896,11 @@
       box.scrollTop = box.scrollHeight;
     }
 
+    function updateMathTrace(opName, lines) {
+      const el = document.getElementById("math-trace-content");
+      el.innerHTML = `<strong>${opName}:</strong><br>` + lines.join("<br>");
+    }
+
     function render() {
       const probs = pool.getProbabilities();
       document.getElementById("display-price-yes").innerText = formatBRL(probs.pYes);
@@ -703,14 +918,71 @@
       document.getElementById("display-user-yes").innerText = formatNum(userWallet.yesShares, 2);
       document.getElementById("display-user-no").innerText = formatNum(userWallet.noShares, 2);
       document.getElementById("display-total-collateral").innerText = formatBRL(pool.totalCollateral);
+
+      renderMultiUserTable();
+    }
+
+    function renderMultiUserTable() {
+      const tbody = document.getElementById("multi-user-tbody");
+      if (!tbody) return;
+
+      let html = "";
+      for (const [name, u] of Object.entries(multiUsers)) {
+        const pnl = (u.payout !== null)
+          ? `${u.brl - u.initialBrl >= 0 ? "+" : ""}${formatBRL(u.brl - u.initialBrl)}`
+          : "—";
+        const payoutStr = (u.payout !== null) ? formatBRL(u.payout) : "—";
+        html += `
+          <tr>
+            <td><strong>${name}</strong></td>
+            <td>${formatBRL(u.brl)}</td>
+            <td style="color: var(--yes)">${formatNum(u.yes, 2)}</td>
+            <td style="color: var(--no)">${formatNum(u.no, 2)}</td>
+            <td>${payoutStr}</td>
+            <td style="font-weight: 600; color: ${pnl.startsWith("+") ? "var(--yes)" : pnl.startsWith("-") ? "var(--no)" : "inherit"}">${pnl}</td>
+          </tr>
+        `;
+      }
+
+      // Linha do Pool LP
+      const lpShares = pool.winningOutcome === "YES" ? pool.x : pool.winningOutcome === "NO" ? pool.y : 0;
+      const lpPayout = pool.isResolved ? lpShares : null;
+      const lpPnl = (lpPayout !== null)
+        ? `${lpPayout - 1000 >= 0 ? "+" : ""}${formatBRL(lpPayout - 1000)}`
+        : "—";
+      html += `
+        <tr style="background: rgba(255,255,255,0.03);">
+          <td><strong>Pool AMM (LP)</strong></td>
+          <td>R$ 0,00</td>
+          <td style="color: var(--yes)">${formatNum(pool.x, 2)}</td>
+          <td style="color: var(--no)">${formatNum(pool.y, 2)}</td>
+          <td>${lpPayout !== null ? formatBRL(lpPayout) : "—"}</td>
+          <td style="font-weight: 600; color: ${lpPnl.startsWith("+") ? "var(--yes)" : lpPnl.startsWith("-") ? "var(--no)" : "inherit"}">${lpPnl}</td>
+        </tr>
+      `;
+      tbody.innerHTML = html;
     }
 
     function resetPool() {
       pool = new CPMM(1000);
       userWallet = { brl: 1000, yesShares: 0, noShares: 0 };
+      multiUsers = {
+        Alice: { brl: 500, yes: 0, no: 0, initialBrl: 500, payout: null },
+        Bob: { brl: 500, yes: 0, no: 0, initialBrl: 500, payout: null },
+        Charlie: { brl: 500, yes: 0, no: 0, initialBrl: 500, payout: null }
+      };
       document.getElementById("resolution-banner").style.display = "none";
       document.getElementById("market-status-badge").innerText = "Mercado Aberto";
       document.getElementById("market-status-badge").style.color = "#38bdf8";
+
+      // Reset botões do cenário 5
+      const s5_1 = document.getElementById("btn-scen5-step1");
+      if (s5_1) s5_1.disabled = false;
+      for (let i = 2; i <= 5; i++) {
+        const btn = document.getElementById(`btn-scen5-step${i}`);
+        if (btn) btn.disabled = true;
+      }
+
       log("Pool e carteira reiniciadas para o estado inicial.");
       render();
     }
@@ -725,10 +997,26 @@
         const res = pool.buyYes(amt);
         userWallet.yesShares += res.shares;
         log(`Compra Sim: Investiu R$ ${amt.toFixed(2)}, recebeu ${res.shares.toFixed(2)} cotas. Preço médio: R$ ${res.avgPrice.toFixed(4)} (Slippage: ${(res.slippage * 100).toFixed(2)}%).`);
+        updateMathTrace("Compra de Cotas Sim (YES)", [
+          `1. Aporte: Δb = R$ ${amt.toFixed(2)}`,
+          `2. Nova reserva Não: y' = y + Δb = ${res.details.yOld.toFixed(2)} + ${amt.toFixed(2)} = ${res.details.yNew.toFixed(2)}`,
+          `3. Nova reserva Sim (conservando k): x' = k / y' = ${res.details.k.toFixed(2)} / ${res.details.yNew.toFixed(2)} = ${res.details.xNew.toFixed(4)}`,
+          `4. Cotas Sim entregues pela pool: Δx_pool = x - x' = ${res.details.xOld.toFixed(2)} - ${res.details.xNew.toFixed(4)} = ${res.details.sharesFromPool.toFixed(4)}`,
+          `5. Total de cotas recebidas: Δb + Δx_pool = ${amt.toFixed(2)} + ${res.details.sharesFromPool.toFixed(4)} = ${res.shares.toFixed(4)}`,
+          `6. Preço médio: R$ ${amt.toFixed(2)} / ${res.shares.toFixed(4)} = R$ ${res.avgPrice.toFixed(4)} (Slippage: ${(res.slippage * 100).toFixed(2)}%)`
+        ]);
       } else {
         const res = pool.buyNo(amt);
         userWallet.noShares += res.shares;
         log(`Compra Não: Investiu R$ ${amt.toFixed(2)}, recebeu ${res.shares.toFixed(2)} cotas. Preço médio: R$ ${res.avgPrice.toFixed(4)} (Slippage: ${(res.slippage * 100).toFixed(2)}%).`);
+        updateMathTrace("Compra de Cotas Não (NO)", [
+          `1. Aporte: Δb = R$ ${amt.toFixed(2)}`,
+          `2. Nova reserva Sim: x' = x + Δb = ${res.details.xOld.toFixed(2)} + ${amt.toFixed(2)} = ${res.details.xNew.toFixed(2)}`,
+          `3. Nova reserva Não (conservando k): y' = k / x' = ${res.details.k.toFixed(2)} / ${res.details.xNew.toFixed(2)} = ${res.details.yNew.toFixed(4)}`,
+          `4. Cotas Não entregues pela pool: Δy_pool = y - y' = ${res.details.yOld.toFixed(2)} - ${res.details.yNew.toFixed(4)} = ${res.details.sharesFromPool.toFixed(4)}`,
+          `5. Total de cotas recebidas: Δb + Δy_pool = ${amt.toFixed(2)} + ${res.details.sharesFromPool.toFixed(4)} = ${res.shares.toFixed(4)}`,
+          `6. Preço médio: R$ ${amt.toFixed(2)} / ${res.shares.toFixed(4)} = R$ ${res.avgPrice.toFixed(4)} (Slippage: ${(res.slippage * 100).toFixed(2)}%)`
+        ]);
       }
       render();
     }
@@ -743,12 +1031,28 @@
         const res = pool.sellYes(shares);
         userWallet.brl += res.proceeds;
         log(`Venda Sim: Vendeu ${shares.toFixed(2)} cotas, recebeu R$ ${res.proceeds.toFixed(2)}. Preço médio: R$ ${res.avgPrice.toFixed(4)}.`);
+        updateMathTrace("Venda Analítica de Cotas Sim (YES)", [
+          `1. Cotas vendidas: S = ${shares.toFixed(2)}`,
+          `2. Parâmetros quadráticos: B = (x + y + S) = ${res.details.b.toFixed(4)}, C = S * y = ${res.details.c.toFixed(4)}`,
+          `3. Discriminante: Δ = B² - 4C = ${res.details.disc.toFixed(4)}, √Δ = ${res.details.sqrtDisc.toFixed(4)}`,
+          `4. BRL resgatado: Δb = (B - √Δ) / 2 = (${res.details.b.toFixed(4)} - ${res.details.sqrtDisc.toFixed(4)}) / 2 = R$ ${res.proceeds.toFixed(4)}`,
+          `5. Preço médio de venda: R$ ${res.proceeds.toFixed(4)} / ${shares.toFixed(2)} = R$ ${res.avgPrice.toFixed(4)} (Slippage: ${(res.slippage * 100).toFixed(2)}%)`,
+          `6. Novas reservas: x' = ${res.details.xNew.toFixed(4)}, y' = ${res.details.yNew.toFixed(4)} (k = ${(res.details.xNew * res.details.yNew).toFixed(2)})`
+        ]);
       } else {
         if (userWallet.noShares < shares) return alert("Cotas Não insuficientes");
         userWallet.noShares -= shares;
         const res = pool.sellNo(shares);
         userWallet.brl += res.proceeds;
         log(`Venda Não: Vendeu ${shares.toFixed(2)} cotas, recebeu R$ ${res.proceeds.toFixed(2)}. Preço médio: R$ ${res.avgPrice.toFixed(4)}.`);
+        updateMathTrace("Venda Analítica de Cotas Não (NO)", [
+          `1. Cotas vendidas: S = ${shares.toFixed(2)}`,
+          `2. Parâmetros quadráticos: B = (x + y + S) = ${res.details.b.toFixed(4)}, C = S * x = ${res.details.c.toFixed(4)}`,
+          `3. Discriminante: Δ = B² - 4C = ${res.details.disc.toFixed(4)}, √Δ = ${res.details.sqrtDisc.toFixed(4)}`,
+          `4. BRL resgatado: Δb = (B - √Δ) / 2 = R$ ${res.proceeds.toFixed(4)}`,
+          `5. Preço médio de venda: R$ ${res.proceeds.toFixed(4)} / ${shares.toFixed(2)} = R$ ${res.avgPrice.toFixed(4)}`,
+          `6. Novas reservas: x' = ${res.details.xNew.toFixed(4)}, y' = ${res.details.yNew.toFixed(4)} (k = ${(res.details.xNew * res.details.yNew).toFixed(2)})`
+        ]);
       }
       render();
     }
@@ -789,6 +1093,13 @@
       userWallet.brl -= 100;
       userWallet.yesShares += res.shares;
       log(`[Cenário 1] Compra de R$ 100 executada. Recebidas ${res.shares.toFixed(2)} cotas Sim. Preço instantâneo subiu para ${(res.pAfter * 100).toFixed(2)}%. k conservado perfeitamente.`);
+      updateMathTrace("Cenário 1: Compra Sim R$ 100", [
+        `Δb = R$ 100,00`,
+        `y' = 1.000 + 100 = 1.100,00`,
+        `x' = 1.000.000 / 1.100 = 909,0909`,
+        `Cotas entregues: 100 + (1.000 - 909,0909) = 190,9091`,
+        `Preço médio: R$ 100 / 190,9091 = R$ 0,5238 (Slippage: +4,76%)`
+      ]);
       render();
     }
 
@@ -840,6 +1151,111 @@
       document.getElementById("btn-scen4-step2").disabled = true;
       document.getElementById("btn-scen4-step1").disabled = false;
       log(`[Cenário 4 - Passo 2] Resolução Sim: cada cota pagou R$ 1,00. Solvência verificada a 100%.`);
+      render();
+    }
+
+    // CENÁRIO 5: MULTIUSUÁRIO (ALICE, BOB, CHARLIE)
+    function runScenario5Step1() {
+      resetPool();
+      const res = pool.buyYes(200);
+      multiUsers.Alice.brl -= 200;
+      multiUsers.Alice.yes += res.shares;
+      document.getElementById("btn-scen5-step1").disabled = true;
+      document.getElementById("btn-scen5-step2").disabled = false;
+      log(`[Multiusuário - 1] Alice comprou R$ 200 de Sim -> Recebeu ${res.shares.toFixed(4)} cotas. Preço médio: R$ ${res.avgPrice.toFixed(4)}.`);
+      updateMathTrace("Cenário 5 - Passo 1: Alice compra Sim com R$ 200", [
+        `Δb = R$ 200,00 | y' = 1.000 + 200 = 1.200,00`,
+        `x' = 1.000.000 / 1.200 = 833,3333`,
+        `Cotas Alice = 200 + (1.000 - 833,3333) = 366,6667`,
+        `Preço Sim: 50,00% -> ${(res.pAfter * 100).toFixed(2)}% | Preço médio: R$ ${res.avgPrice.toFixed(4)}`
+      ]);
+      render();
+    }
+
+    function runScenario5Step2() {
+      const res = pool.buyNo(300);
+      multiUsers.Bob.brl -= 300;
+      multiUsers.Bob.no += res.shares;
+      document.getElementById("btn-scen5-step2").disabled = true;
+      document.getElementById("btn-scen5-step3").disabled = false;
+      log(`[Multiusuário - 2] Bob comprou R$ 300 de Não -> Recebeu ${res.shares.toFixed(4)} cotas. Preço médio: R$ ${res.avgPrice.toFixed(4)}.`);
+      updateMathTrace("Cenário 5 - Passo 2: Bob compra Não com R$ 300", [
+        `Δb = R$ 300,00 | x' = 833,3333 + 300 = 1.133,3333`,
+        `y' = 1.000.000 / 1.133,3333 = 882,3529`,
+        `Cotas Bob = 300 + (1.200 - 882,3529) = 617,6471`,
+        `Preço Não: 40,98% -> ${(res.pAfter * 100).toFixed(2)}% | Preço Sim: ${(pool.getProbabilities().pYes * 100).toFixed(2)}%`
+      ]);
+      render();
+    }
+
+    function runScenario5Step3() {
+      const res = pool.buyYes(100);
+      multiUsers.Charlie.brl -= 100;
+      multiUsers.Charlie.yes += res.shares;
+      document.getElementById("btn-scen5-step3").disabled = true;
+      document.getElementById("btn-scen5-step4").disabled = false;
+      log(`[Multiusuário - 3] Charlie comprou R$ 100 de Sim -> Recebeu ${res.shares.toFixed(4)} cotas. Preço médio: R$ ${res.avgPrice.toFixed(4)}.`);
+      updateMathTrace("Cenário 5 - Passo 3: Charlie compra Sim com R$ 100", [
+        `Δb = R$ 100,00 | y' = 882,3529 + 100 = 982,3529`,
+        `x' = 1.000.000 / 982,3529 = 1.017,9641`,
+        `Cotas Charlie = 100 + (1.133,3333 - 1.017,9641) = 215,3693`,
+        `Preço Sim: 43,77% -> ${(res.pAfter * 100).toFixed(2)}%`
+      ]);
+      render();
+    }
+
+    function runScenario5Step4() {
+      const sellShares = multiUsers.Alice.yes / 2;
+      multiUsers.Alice.yes -= sellShares;
+      const res = pool.sellYes(sellShares);
+      multiUsers.Alice.brl += res.proceeds;
+      document.getElementById("btn-scen5-step4").disabled = true;
+      document.getElementById("btn-scen5-step5").disabled = false;
+      log(`[Multiusuário - 4] Alice vendeu 50% (${sellShares.toFixed(4)} cotas Sim) -> Recebeu R$ ${res.proceeds.toFixed(2)}.`);
+      updateMathTrace("Cenário 5 - Passo 4: Alice vende 50% de suas cotas", [
+        `S = ${sellShares.toFixed(4)} cotas Sim`,
+        `B = x + y + S = 1.017,9641 + 982,3529 + ${sellShares.toFixed(4)} = ${res.details.b.toFixed(4)}`,
+        `C = S * y = ${res.details.c.toFixed(4)} | √Δ = ${res.details.sqrtDisc.toFixed(4)}`,
+        `Δb = (${res.details.b.toFixed(4)} - ${res.details.sqrtDisc.toFixed(4)}) / 2 = R$ ${res.proceeds.toFixed(4)}`,
+        `Novas Reservas: x=${pool.x.toFixed(4)}, y=${pool.y.toFixed(4)} | Colateral Cofre: R$ ${pool.totalCollateral.toFixed(2)}`
+      ]);
+      render();
+    }
+
+    function runScenario5Step5() {
+      pool.isResolved = true;
+      pool.winningOutcome = "YES";
+
+      // Payouts
+      multiUsers.Alice.payout = multiUsers.Alice.yes * 1.0;
+      multiUsers.Alice.brl += multiUsers.Alice.payout;
+      multiUsers.Alice.yes = 0;
+
+      multiUsers.Bob.payout = multiUsers.Bob.yes * 1.0; // 0
+      multiUsers.Bob.brl += multiUsers.Bob.payout;
+      multiUsers.Bob.no = 0;
+
+      multiUsers.Charlie.payout = multiUsers.Charlie.yes * 1.0;
+      multiUsers.Charlie.brl += multiUsers.Charlie.payout;
+      multiUsers.Charlie.yes = 0;
+
+      document.getElementById("btn-scen5-step5").disabled = true;
+
+      const banner = document.getElementById("resolution-banner");
+      banner.style.display = "block";
+      banner.innerHTML = `<strong>Mercado Resolvido como SIM pelo Oráculo!</strong><br>Liquidação final concluída. Alice resgatou R$ 183,33, Charlie R$ 215,37 e Pool LP R$ 1.115,45. Cofre esgotado perfeitamente a R$ 0,00 sem déficit.`;
+      
+      document.getElementById("market-status-badge").innerText = "Resolvido: SIM";
+      document.getElementById("market-status-badge").style.color = "var(--yes)";
+
+      log(`[Multiusuário - 5] Oráculo resolveu como SIM. Payouts creditados. Solvência de 100% confirmada.`);
+      updateMathTrace("Cenário 5 - Passo 5: Liquidação Final (SIM Vence)", [
+        `Alice: 183,33 cotas * R$ 1,00 = R$ 183,33 (Saldo final: R$ ${multiUsers.Alice.brl.toFixed(2)})`,
+        `Bob: 617,65 cotas Não * R$ 0,00 = R$ 0,00 (Saldo final: R$ ${multiUsers.Bob.brl.toFixed(2)})`,
+        `Charlie: 215,37 cotas * R$ 1,00 = R$ 215,37 (Saldo final: R$ ${multiUsers.Charlie.brl.toFixed(2)})`,
+        `Pool LP: ${pool.x.toFixed(4)} cotas Sim * R$ 1,00 = R$ ${pool.x.toFixed(2)}`,
+        `Total distribuído: R$ ${(multiUsers.Alice.payout + multiUsers.Charlie.payout + pool.x).toFixed(2)} == Colateral do Cofre. Saldo residual: R$ 0,00.`
+      ]);
       render();
     }
 

@@ -220,6 +220,74 @@ class TestSolvencyAndLiquidation:
         settle_no = settle_market(pool, "NO", user_no_shares=user_b_no)
         assert settle_no.vault_solvency_verified is True
 
+    def test_multi_user_lifecycle_with_partial_sell(self):
+        """
+        Multi-user realistic scenario:
+        - Pool initialized with 1000 BRL
+        - Alice buys YES (200 BRL)
+        - Bob buys NO (300 BRL)
+        - Charlie buys YES (100 BRL)
+        - Alice sells 50% of her YES shares
+        - Verify exact product conservation and 100% solvency under YES and NO resolutions.
+        """
+        pool = create_pool(Decimal("1000.00"))
+        alice_brl = Decimal("500.00")
+        bob_brl = Decimal("500.00")
+        charlie_brl = Decimal("500.00")
+
+        # 1. Alice buys YES (200 BRL)
+        alice_brl -= Decimal("200.00")
+        pool, trade_alice_buy = buy_yes(pool, Decimal("200.00"))
+        alice_yes = trade_alice_buy.shares_delta
+        alice_no = Decimal("0")
+
+        # 2. Bob buys NO (300 BRL)
+        bob_brl -= Decimal("300.00")
+        pool, trade_bob_buy = buy_no(pool, Decimal("300.00"))
+        bob_yes = Decimal("0")
+        bob_no = trade_bob_buy.shares_delta
+
+        # 3. Charlie buys YES (100 BRL)
+        charlie_brl -= Decimal("100.00")
+        pool, trade_charlie_buy = buy_yes(pool, Decimal("100.00"))
+        charlie_yes = trade_charlie_buy.shares_delta
+        charlie_no = Decimal("0")
+
+        # 4. Alice sells 50% of her YES shares
+        alice_shares_to_sell = alice_yes / Decimal("2")
+        alice_yes -= alice_shares_to_sell
+        pool, trade_alice_sell = sell_yes(pool, alice_shares_to_sell)
+        alice_brl += trade_alice_sell.brl_amount
+
+        # Invariant checks
+        k_expected = Decimal("1000000.00")
+        assert abs(pool.x * pool.y - k_expected) / k_expected < Decimal("1e-20")
+
+        total_yes = alice_yes + bob_yes + charlie_yes + pool.x
+        total_no = alice_no + bob_no + charlie_no + pool.y
+        assert abs(total_yes - pool.total_collateral) < Decimal("1e-12")
+        assert abs(total_no - pool.total_collateral) < Decimal("1e-12")
+
+        # Resolution YES
+        payout_alice_yes = alice_yes * Decimal("1.00")
+        payout_bob_yes = bob_yes * Decimal("1.00")
+        payout_charlie_yes = charlie_yes * Decimal("1.00")
+        payout_lp_yes = pool.x * Decimal("1.00")
+        total_paid_yes = payout_alice_yes + payout_bob_yes + payout_charlie_yes + payout_lp_yes
+        assert abs(total_paid_yes - pool.total_collateral) < Decimal("1e-12")
+        assert (alice_brl + payout_alice_yes) > Decimal("500.00")  # Alice profitable
+        assert (charlie_brl + payout_charlie_yes) > Decimal("500.00")  # Charlie profitable
+        assert (bob_brl + payout_bob_yes) == Decimal("200.00")  # Bob lost 300
+
+        # Resolution NO
+        payout_alice_no = alice_no * Decimal("1.00")
+        payout_bob_no = bob_no * Decimal("1.00")
+        payout_charlie_no = charlie_no * Decimal("1.00")
+        payout_lp_no = pool.y * Decimal("1.00")
+        total_paid_no = payout_alice_no + payout_bob_no + payout_charlie_no + payout_lp_no
+        assert abs(total_paid_no - pool.total_collateral) < Decimal("1e-12")
+        assert (bob_brl + payout_bob_no) > Decimal("500.00")  # Bob profitable
+
 
 class TestProtocolFee:
     def test_fee_deduction_on_buy_and_sell(self):

@@ -102,30 +102,93 @@ Execução realizada via `uv run pytest tests/test_cpmm.py -v`:
 ```
 ============================= test session starts ==============================
 platform darwin -- Python 3.12.4, pytest-9.1.1, pluggy-1.6.0
-collected 22 items
+collected 23 items
 
 tests/test_cpmm.py::TestPoolInitialization::test_initial_reserves_and_probability PASSED [  4%]
-tests/test_cpmm.py::TestPoolInitialization::test_invalid_initial_liquidity PASSED [  9%]
+tests/test_cpmm.py::TestPoolInitialization::test_invalid_initial_liquidity PASSED [  8%]
 tests/test_cpmm.py::TestProductConservation::test_buy_conserves_product_invariant[investment0] PASSED [ 13%]
-tests/test_cpmm.py::TestProductConservation::test_buy_conserves_product_invariant[investment1] PASSED [ 18%]
-tests/test_cpmm.py::TestProductConservation::test_buy_conserves_product_invariant[investment2] PASSED [ 22%]
-tests/test_cpmm.py::TestProductConservation::test_buy_conserves_product_invariant[investment3] PASSED [ 27%]
-tests/test_cpmm.py::TestProductConservation::test_buy_conserves_product_invariant[investment4] PASSED [ 31%]
-tests/test_cpmm.py::TestProductConservation::test_sell_conserves_product_invariant[shares0] PASSED [ 36%]
-tests/test_cpmm.py::TestProductConservation::test_sell_conserves_product_invariant[shares1] PASSED [ 40%]
-tests/test_cpmm.py::TestProductConservation::test_sell_conserves_product_invariant[shares2] PASSED [ 45%]
-tests/test_cpmm.py::TestProductConservation::test_sell_conserves_product_invariant[shares3] PASSED [ 50%]
-tests/test_cpmm.py::TestSymmetryAndReversibility::test_round_trip_recovers_exact_capital_without_fees[investment0] PASSED [ 54%]
-tests/test_cpmm.py::TestSymmetryAndReversibility::test_round_trip_recovers_exact_capital_without_fees[investment1] PASSED [ 59%]
-tests/test_cpmm.py::TestSymmetryAndReversibility::test_round_trip_recovers_exact_capital_without_fees[investment2] PASSED [ 63%]
-tests/test_cpmm.py::TestSymmetryAndReversibility::test_round_trip_recovers_exact_capital_without_fees[investment3] PASSED [ 68%]
-tests/test_cpmm.py::TestSymmetryAndReversibility::test_round_trip_no_shares PASSED [ 72%]
-tests/test_cpmm.py::TestPriceAndSlippageMechanics::test_buying_yes_increases_yes_price_and_decreases_no_price PASSED [ 77%]
-tests/test_cpmm.py::TestPriceAndSlippageMechanics::test_larger_trades_experience_higher_slippage PASSED [ 81%]
-tests/test_cpmm.py::TestSolvencyAndLiquidation::test_liquidation_yes_resolves_to_one_reais PASSED [ 86%]
-tests/test_cpmm.py::TestSolvencyAndLiquidation::test_liquidation_no_resolves_to_zero_for_yes_holders PASSED [ 90%]
-tests/test_cpmm.py::TestSolvencyAndLiquidation::test_sequential_trading_and_final_solvency PASSED [ 95%]
+tests/test_cpmm.py::TestProductConservation::test_buy_conserves_product_invariant[investment1] PASSED [ 17%]
+tests/test_cpmm.py::TestProductConservation::test_buy_conserves_product_invariant[investment2] PASSED [ 21%]
+tests/test_cpmm.py::TestProductConservation::test_buy_conserves_product_invariant[investment3] PASSED [ 26%]
+tests/test_cpmm.py::TestProductConservation::test_buy_conserves_product_invariant[investment4] PASSED [ 30%]
+tests/test_cpmm.py::TestProductConservation::test_sell_conserves_product_invariant[shares0] PASSED [ 34%]
+tests/test_cpmm.py::TestProductConservation::test_sell_conserves_product_invariant[shares1] PASSED [ 39%]
+tests/test_cpmm.py::TestProductConservation::test_sell_conserves_product_invariant[shares2] PASSED [ 43%]
+tests/test_cpmm.py::TestProductConservation::test_sell_conserves_product_invariant[shares3] PASSED [ 47%]
+tests/test_cpmm.py::TestSymmetryAndReversibility::test_round_trip_recovers_exact_capital_without_fees[investment0] PASSED [ 52%]
+tests/test_cpmm.py::TestSymmetryAndReversibility::test_round_trip_recovers_exact_capital_without_fees[investment1] PASSED [ 56%]
+tests/test_cpmm.py::TestSymmetryAndReversibility::test_round_trip_recovers_exact_capital_without_fees[investment2] PASSED [ 60%]
+tests/test_cpmm.py::TestSymmetryAndReversibility::test_round_trip_recovers_exact_capital_without_fees[investment3] PASSED [ 65%]
+tests/test_cpmm.py::TestSymmetryAndReversibility::test_round_trip_no_shares PASSED [ 69%]
+tests/test_cpmm.py::TestPriceAndSlippageMechanics::test_buying_yes_increases_yes_price_and_decreases_no_price PASSED [ 73%]
+tests/test_cpmm.py::TestPriceAndSlippageMechanics::test_larger_trades_experience_higher_slippage PASSED [ 78%]
+tests/test_cpmm.py::TestSolvencyAndLiquidation::test_liquidation_yes_resolves_to_one_reais PASSED [ 82%]
+tests/test_cpmm.py::TestSolvencyAndLiquidation::test_liquidation_no_resolves_to_zero_for_yes_holders PASSED [ 86%]
+tests/test_cpmm.py::TestSolvencyAndLiquidation::test_sequential_trading_and_final_solvency PASSED [ 91%]
+tests/test_cpmm.py::TestSolvencyAndLiquidation::test_multi_user_lifecycle_with_partial_sell PASSED [ 95%]
 tests/test_cpmm.py::TestProtocolFee::test_fee_deduction_on_buy_and_sell PASSED [100%]
 
-============================== 22 passed in 0.02s ==============================
+============================== 23 passed in 0.05s ==============================
 ```
+
+---
+
+## 5. Memorial de Cálculo Analítico: Simulação Multiusuário Passo a Passo
+
+Simulação formal com 3 usuários ativos (Alice, Bob, Charlie) e o Provedor de Liquidez (LP) auditando a evolução exata de reservas, preços e cofre:
+
+### 5.1. Estado Inicial (T0)
+- **LP Aporta:** R$ 1.000,00 inicial criando a pool a 50%/50%.
+- **Reservas:** $x_0 = 1.000{,}00$ (Sim), $y_0 = 1.000{,}00$ (Não), $k = 1.000.000{,}00$.
+- **Probabilidades:** $P_{sim} = 50{,}00\%$, $P_{nao} = 50{,}00\%$.
+- **Colateral no Cofre:** R$ 1.000,00.
+
+### 5.2. Passo a Passo das Operações
+1. **Alice compra Sim com R$ 200,00 ($\Delta b = 200$):**
+   - $y_1 = 1.000 + 200 = 1.200{,}00$
+   - $x_1 = \frac{1.000.000}{1.200} = 833{,}3333$
+   - Cotas entregues: $\Delta b + (x_0 - x_1) = 200 + (1.000 - 833{,}3333) = 366{,}6667$ cotas Sim.
+   - Preço médio: $\frac{200}{366{,}6667} = \text{R\$ } 0{,}5455$ (Slippage: $+9{,}09\%$).
+   - Novo preço instantâneo: $P_{sim}^{(1)} = \frac{1.200}{833{,}3333 + 1.200} = 59{,}02\%$.
+   - Cofre: R$ 1.200,00.
+2. **Bob compra Não com R$ 300,00 ($\Delta b = 300$):**
+   - $x_2 = 833{,}3333 + 300 = 1.133{,}3333$
+   - $y_2 = \frac{1.000.000}{1.133{,}3333} = 882{,}3529$
+   - Cotas entregues: $300 + (1.200 - 882{,}3529) = 617{,}6471$ cotas Não.
+   - Preço médio: $\frac{300}{617{,}6471} = \text{R\$ } 0{,}4857$ (Slippage: $+18{,}51\%$).
+   - Novo preço instantâneo: $P_{nao}^{(2)} = 56{,}23\%$, $P_{sim}^{(2)} = 43{,}77\%$.
+   - Cofre: R$ 1.500,00.
+3. **Charlie compra Sim com R$ 100,00 ($\Delta b = 100$):**
+   - $y_3 = 882{,}3529 + 100 = 982{,}3529$
+   - $x_3 = \frac{1.000.000}{982{,}3529} = 1.017{,}9641$
+   - Cotas entregues: $100 + (1.133{,}3333 - 1.017{,}9641) = 215{,}3693$ cotas Sim.
+   - Preço médio: $\frac{100}{215{,}3693} = \text{R\$ } 0{,}4643$ (Slippage: $+6{,}07\%$).
+   - Novo preço instantâneo: $P_{sim}^{(3)} = 49{,}11\%$.
+   - Cofre: R$ 1.600,00.
+4. **Alice vende 50% de suas cotas Sim ($S = 183{,}3333$):**
+   - $B = x_3 + y_3 + S = 1.017{,}9641 + 982{,}3529 + 183{,}3333 = 2.183{,}6504$
+   - $C = S \cdot y_3 = 183{,}3333 \times 982{,}3529 = 180.098{,}0428$
+   - $\Delta = B^2 - 4C = 4.047.937{,}02 \implies \sqrt{\Delta} = 2.011{,}9486$
+   - Dinheiro resgatado: $\Delta b = \frac{B - \sqrt{\Delta}}{2} = \text{R\$ } 85{,}8509$
+   - Novas reservas: $x_4 = 1.017{,}9641 + (183{,}3333 - 85{,}8509) = 1.115{,}4465$, $y_4 = 982{,}3529 - 85{,}8509 = 896{,}5020$.
+   - Conservação de $k$: $1.115{,}4465 \times 896{,}5020 = 1.000.000{,}00$.
+   - Cofre: R$ 1.600{,}00 - 85{,}8509 = \text{R\$ } 1.514{,}1491$.
+
+### 5.3. Livro-Razão Consolidado Antes da Resolução
+
+| Participante | Saldo BRL | Cotas Sim | Cotas Não | Custo Líquido Aportado |
+| :--- | :--- | :--- | :--- | :--- |
+| **Alice** | R$ 385,85 | 183,3333 | 0,0000 | R$ 114,15 |
+| **Bob** | R$ 200,00 | 0,0000 | 617,6471 | R$ 300,00 |
+| **Charlie** | R$ 400,00 | 215,3693 | 0,0000 | R$ 100,00 |
+| **Pool LP** | R$ 0,00 | 1.115,4465 | 896,5020 | R$ 1.000,00 inicial |
+| **TOTAL** | — | **1.514,1491** | **1.514,1491** | **Cofre: R$ 1.514,1491** |
+
+### 5.4. Liquidação Final pelo Oráculo (Desfecho = SIM)
+- **Alice**: 183,3333 cotas $\times$ R$ 1,00 = R$ 183,33 $\implies$ Saldo final R$ 569,18 (**Lucro: +R$ 69,18**)
+- **Bob**: 617,6471 cotas $\times$ R$ 0,00 = R$ 0,00 $\implies$ Saldo final R$ 200,00 (**Prejuízo: -R$ 300,00**)
+- **Charlie**: 215,3693 cotas $\times$ R$ 1,00 = R$ 215,37 $\implies$ Saldo final R$ 615,37 (**Lucro: +R$ 115,37**)
+- **Pool LP**: 1.115,4465 cotas $\times$ R$ 1,00 = R$ 1.115,45 $\implies$ Variação de capital: **+R$ 115,45**
+- **Auditoria do Cofre:**
+  $$\text{Total Distribuído} = 183{,}33 + 0 + 215{,}37 + 1.115{,}45 = \text{R\$ } 1.514{,}1491$$
+  $$\text{Saldo Residual} = \mathbf{\text{R\$ } 0{,}0000000000}$$
