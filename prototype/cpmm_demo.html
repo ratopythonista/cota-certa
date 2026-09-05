@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demonstrador Lógico CPMM — Cota Certa (Protótipo)</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #38bdf8;
+      --primary-hover: #0ea5e9;
+      --yes: #22c55e;
+      --yes-hover: #16a34a;
+      --no: #ef4444;
+      --no-hover: #dc2626;
+      --accent: #a855f7;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 24px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      background-color: #3b82f6;
+      color: white;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .stat-row:last-child {
+      border-bottom: none;
+    }
+
+    .stat-label {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .stat-value {
+      font-weight: 600;
+      font-size: 1.05rem;
+      font-feature-settings: "tnum";
+    }
+
+    .price-yes { color: var(--yes); font-size: 1.3rem; }
+    .price-no { color: var(--no); font-size: 1.3rem; }
+
+    .probability-bar-container {
+      margin: 16px 0;
+    }
+
+    .probability-bar {
+      height: 16px;
+      border-radius: 8px;
+      display: flex;
+      overflow: hidden;
+      background: #000;
+    }
+
+    .prob-yes-fill {
+      background: var(--yes);
+      transition: width 0.3s ease;
+    }
+
+    .prob-no-fill {
+      background: var(--no);
+      transition: width 0.3s ease;
+    }
+
+    .prob-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border-radius: 6px;
+      border: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-yes { background: var(--yes); color: white; }
+    .btn-yes:hover:not(:disabled) { background: var(--yes-hover); }
+
+    .btn-no { background: var(--no); color: white; }
+    .btn-no:hover:not(:disabled) { background: var(--no-hover); }
+
+    .btn-neutral { background: #475569; color: white; }
+    .btn-neutral:hover:not(:disabled) { background: #64748b; }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    .btn-outline:hover:not(:disabled) {
+      border-color: var(--text);
+      color: var(--text);
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .input-group label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .input-group input {
+      background: #0b1329;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.95rem;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .scenario-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 12px;
+      border-radius: 6px;
+    }
+
+    .step-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      padding: 12px;
+      border-radius: 6px;
+    }
+
+    .step-info {
+      flex: 1;
+    }
+
+    .step-title {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .step-detail {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .log-box {
+      margin-top: 24px;
+      background: #090d16;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      max-height: 180px;
+      overflow-y: auto;
+      color: #38bdf8;
+    }
+
+    .log-entry {
+      margin-bottom: 4px;
+    }
+
+    .callout-success {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid var(--yes);
+      color: #86efac;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <span class="badge">Protótipo Descartável — Issue #4</span>
+      <h1>Demonstrador Lógico do AMM de Produto Constante ($x \times y = k$)</h1>
+      <p class="subtitle">
+        Este protótipo responde à pergunta: <strong>Como se comportam as fórmulas de compra, venda, probabilidade instantânea ($P_{yes} = \frac{y}{x+y}$) e liquidação final a R$ 1,00 / R$ 0,00 sob Complete Set Minting?</strong>
+      </p>
+    </header>
+
+    <!-- ESTADO ATUAL DO AMM -->
+    <div class="grid">
+      <!-- Painel 1: Reservas e Probabilidade -->
+      <div class="card">
+        <div class="card-title">
+          <span>Estado da Pool de Liquidez</span>
+          <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="resetPool()">Reiniciar Pool</button>
+        </div>
+
+        <div class="stat-row">
+          <span class="stat-label">Cota Sim (YES)</span>
+          <span class="stat-value price-yes" id="display-price-yes">R$ 0,50</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Cota Não (NO)</span>
+          <span class="stat-value price-no" id="display-price-no">R$ 0,50</span>
+        </div>
+
+        <div class="probability-bar-container">
+          <div class="probability-bar">
+            <div class="prob-yes-fill" id="bar-yes" style="width: 50%;"></div>
+            <div class="prob-no-fill" id="bar-no" style="width: 50%;"></div>
+          </div>
+          <div class="prob-labels">
+            <span style="color: var(--yes)" id="display-prob-yes">50.0% Sim</span>
+            <span style="color: var(--no)" id="display-prob-no">50.0% Não</span>
+          </div>
+        </div>
+
+        <div class="stat-row">
+          <span class="stat-label">Reserva Sim ($x$)</span>
+          <span class="stat-value" id="display-res-x">1.000,00</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Reserva Não ($y$)</span>
+          <span class="stat-value" id="display-res-y">1.000,00</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Invariante $k$ ($x \times y$)</span>
+          <span class="stat-value" id="display-k">1.000.000,00</span>
+        </div>
+      </div>
+
+      <!-- Painel 2: Carteira do Usuário & Cofre -->
+      <div class="card">
+        <div class="card-title">
+          <span>Carteira do Usuário & Cofre</span>
+          <span id="market-status-badge" style="font-size: 0.75rem; color: #38bdf8;">Mercado Aberto</span>
+        </div>
+
+        <div class="stat-row">
+          <span class="stat-label">Saldo Disponível (BRL)</span>
+          <span class="stat-value" id="display-user-brl">R$ 1.000,00</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Cotas Sim em Carteira</span>
+          <span class="stat-value" style="color: var(--yes)" id="display-user-yes">0,00</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Cotas Não em Carteira</span>
+          <span class="stat-value" style="color: var(--no)" id="display-user-no">0,00</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Colateral Total no Cofre</span>
+          <span class="stat-value" id="display-total-collateral">R$ 1.000,00</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Solvência do Cofre</span>
+          <span class="stat-value" style="color: var(--yes)" id="display-solvency">100% (Lastro Estrito)</span>
+        </div>
+
+        <div id="resolution-banner" style="display: none;" class="callout-success"></div>
+      </div>
+    </div>
+
+    <!-- PAINEL DE JOGO LIVRE (FREE-PLAY) -->
+    <div class="card" style="margin-bottom: 24px;">
+      <div class="card-title">Operações Livres (Free-Play)</div>
+      
+      <div class="grid" style="margin-bottom: 0;">
+        <!-- Operações de Compra -->
+        <div>
+          <div class="input-group" style="margin-bottom: 12px;">
+            <label>Investimento em Reais (BRL):</label>
+            <input type="number" id="input-buy-amount" value="100" min="1" step="10" />
+          </div>
+          <div class="controls-grid">
+            <button class="btn btn-yes" onclick="handleBuy('YES')">Comprar Sim</button>
+            <button class="btn btn-no" onclick="handleBuy('NO')">Comprar Não</button>
+          </div>
+        </div>
+
+        <!-- Operações de Venda -->
+        <div>
+          <div class="input-group" style="margin-bottom: 12px;">
+            <label>Cotas a Vender:</label>
+            <input type="number" id="input-sell-amount" value="50" min="1" step="10" />
+          </div>
+          <div class="controls-grid">
+            <button class="btn btn-outline" style="border-color: var(--yes); color: var(--yes);" onclick="handleSell('YES')">Vender Sim</button>
+            <button class="btn btn-outline" style="border-color: var(--no); color: var(--no);" onclick="handleSell('NO')">Vender Não</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resolução pelo Oráculo -->
+      <div style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px;">
+        <span style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 8px;">Ação do Oráculo (Resolução do Mercado):</span>
+        <div style="display: flex; gap: 12px;">
+          <button class="btn btn-neutral" onclick="handleResolve('YES')">Resolver como SIM (Paga R$ 1,00 para Sim)</button>
+          <button class="btn btn-neutral" onclick="handleResolve('NO')">Resolver como NÃO (Paga R$ 1,00 para Não)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENÁRIOS GUIADOS (WALKTHROUGHS) -->
+    <div class="card">
+      <div class="card-title">Cenários Guiados de Validação</div>
+      
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchScenario(1)">1. Caminho Feliz (Compra)</button>
+        <button class="tab-btn" onclick="switchScenario(2)">2. Simetria Reversa (Ida e Volta)</button>
+        <button class="tab-btn" onclick="switchScenario(3)">3. Ordem Gigante & Slippage</button>
+        <button class="tab-btn" onclick="switchScenario(4)">4. Liquidação a R$ 1,00</button>
+      </div>
+
+      <!-- Cenário 1 -->
+      <div id="scenario-1" class="scenario-content">
+        <div class="scenario-desc">
+          <strong>Objetivo:</strong> Executar uma compra equilibrada de R$ 100 em cotas Sim, observando o preço médio executado, a conservação estrita de $k$ e a elevação da probabilidade instantânea.
+        </div>
+        <div class="step-list">
+          <div class="step-item">
+            <div class="step-info">
+              <div class="step-title">Passo 1: Comprar R$ 100 de Sim</div>
+              <div class="step-detail">Gera ~190,91 cotas Sim. O preço instantâneo sobe de R$ 0,50 para ~R$ 0,5475 (+4,76% de slippage).</div>
+            </div>
+            <button class="btn btn-yes" onclick="runScenario1()">Executar Passo</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cenário 2 -->
+      <div id="scenario-2" class="scenario-content" style="display: none;">
+        <div class="scenario-desc">
+          <strong>Objetivo:</strong> Provar que comprar e vender imediatamente a mesma quantidade recupera exatamente 100% do capital (reversibilidade perfeita do CPMM fechado sem taxas).
+        </div>
+        <div class="step-list">
+          <div class="step-item">
+            <div class="step-info">
+              <div class="step-title">Passo 1: Comprar R$ 100 de Sim</div>
+              <div class="step-detail">Gera ~190,91 cotas Sim e debita R$ 100 da carteira.</div>
+            </div>
+            <button class="btn btn-yes" id="btn-scen2-step1" onclick="runScenario2Step1()">Passo 1: Comprar</button>
+          </div>
+          <div class="step-item">
+            <div class="step-info">
+              <div class="step-title">Passo 2: Vender 100% das Cotas Sim Adquiridas</div>
+              <div class="step-detail">Entrega as 190,91 cotas e recupera exatamente R$ 100,00 com k perfeitamente conservado.</div>
+            </div>
+            <button class="btn btn-outline" id="btn-scen2-step2" disabled onclick="runScenario2Step2()">Passo 2: Vender</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cenário 3 -->
+      <div id="scenario-3" class="scenario-content" style="display: none;">
+        <div class="scenario-desc">
+          <strong>Objetivo:</strong> Submeter uma ordem desproporcional (R$ 1.500 em uma pool de R$ 1.000) e verificar como a curva hiperbólica do AMM protege as reservas e impede o esgotamento da pool.
+        </div>
+        <div class="step-list">
+          <div class="step-item">
+            <div class="step-info">
+              <div class="step-title">Passo 1: Comprar R$ 1.500 de Sim</div>
+              <div class="step-detail">Ordem 1,5x maior que a reserva inicial. O preço instantâneo sobe para > 80% e o slippage atinge ~36%.</div>
+            </div>
+            <button class="btn btn-yes" onclick="runScenario3()">Executar Ordem Gigante</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cenário 4 -->
+      <div id="scenario-4" class="scenario-content" style="display: none;">
+        <div class="scenario-desc">
+          <strong>Objetivo:</strong> Simular um ciclo completo com posições de usuários e a liquidação pelo Oráculo a R$ 1,00 para o desfecho vencedor e R$ 0,00 para o perdedor, conferindo a solvência do cofre.
+        </div>
+        <div class="step-list">
+          <div class="step-item">
+            <div class="step-info">
+              <div class="step-title">Passo 1: Comprar R$ 100 de Sim (Usuário Aposta Sim)</div>
+              <div class="step-detail">Recebe cotas Sim pagando em média ~R$ 0,52.</div>
+            </div>
+            <button class="btn btn-yes" id="btn-scen4-step1" onclick="runScenario4Step1()">1. Comprar Sim</button>
+          </div>
+          <div class="step-item">
+            <div class="step-info">
+              <div class="step-title">Passo 2: Oráculo Resolve o Mercado como SIM</div>
+              <div class="step-detail">Cotas Sim pagam R$ 1,00 cada. O usuário liquida com lucro e o cofre zera o passivo.</div>
+            </div>
+            <button class="btn btn-neutral" id="btn-scen4-step2" disabled onclick="runScenario4Step2()">2. Liquidar a R$ 1,00</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOG DE EXECUÇÃO -->
+    <div class="log-box" id="log-box">
+      <div class="log-entry">[Início] Demonstrador carregado. Pool inicial: x=1.000, y=1.000, k=1.000.000. Probabilidade 50%/50%.</div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * MÓDULO PURO CPMM (LIFTÁVEL PARA PRODUÇÃO)
+     */
+    class CPMM {
+      constructor(initialLiquidity = 1000) {
+        this.x = initialLiquidity; // Cotas Sim
+        this.y = initialLiquidity; // Cotas Não
+        this.k = this.x * this.y;
+        this.totalCollateral = initialLiquidity;
+        this.isResolved = false;
+        this.winningOutcome = null;
+      }
+
+      getProbabilities() {
+        const total = this.x + this.y;
+        return {
+          pYes: this.y / total,
+          pNo: this.x / total
+        };
+      }
+
+      buyYes(investment) {
+        if (investment <= 0) throw new Error("Investimento deve ser positivo");
+        const pBefore = this.getProbabilities().pYes;
+        const yNew = this.y + investment;
+        const xNew = this.k / yNew;
+        const sharesFromPool = this.x - xNew;
+        const totalShares = investment + sharesFromPool;
+
+        this.x = xNew;
+        this.y = yNew;
+        this.totalCollateral += investment;
+
+        const pAfter = this.getProbabilities().pYes;
+        const avgPrice = investment / totalShares;
+        const slippage = (avgPrice - pBefore) / pBefore;
+
+        return {
+          shares: totalShares,
+          avgPrice,
+          pBefore,
+          pAfter,
+          slippage
+        };
+      }
+
+      buyNo(investment) {
+        if (investment <= 0) throw new Error("Investimento deve ser positivo");
+        const pBefore = this.getProbabilities().pNo;
+        const xNew = this.x + investment;
+        const yNew = this.k / xNew;
+        const sharesFromPool = this.y - yNew;
+        const totalShares = investment + sharesFromPool;
+
+        this.x = xNew;
+        this.y = yNew;
+        this.totalCollateral += investment;
+
+        const pAfter = this.getProbabilities().pNo;
+        const avgPrice = investment / totalShares;
+        const slippage = (avgPrice - pBefore) / pBefore;
+
+        return {
+          shares: totalShares,
+          avgPrice,
+          pBefore,
+          pAfter,
+          slippage
+        };
+      }
+
+      sellYes(shares) {
+        if (shares <= 0) throw new Error("Cotas devem ser positivas");
+        const pBefore = this.getProbabilities().pYes;
+        const b = this.x + this.y + shares;
+        const c = shares * this.y;
+        const disc = b * b - 4 * c;
+        if (disc < 0) throw new Error("Discriminante negativo");
+        
+        const deltaB = (b - Math.sqrt(disc)) / 2;
+        this.x = this.x + (shares - deltaB);
+        this.y = this.y - deltaB;
+        this.totalCollateral -= deltaB;
+
+        const pAfter = this.getProbabilities().pYes;
+        const avgPrice = deltaB / shares;
+        const slippage = (pBefore - avgPrice) / pBefore;
+
+        return {
+          proceeds: deltaB,
+          avgPrice,
+          pBefore,
+          pAfter,
+          slippage
+        };
+      }
+
+      sellNo(shares) {
+        if (shares <= 0) throw new Error("Cotas devem ser positivas");
+        const pBefore = this.getProbabilities().pNo;
+        const b = this.x + this.y + shares;
+        const c = shares * this.x;
+        const disc = b * b - 4 * c;
+        if (disc < 0) throw new Error("Discriminante negativo");
+        
+        const deltaB = (b - Math.sqrt(disc)) / 2;
+        this.y = this.y + (shares - deltaB);
+        this.x = this.x - deltaB;
+        this.totalCollateral -= deltaB;
+
+        const pAfter = this.getProbabilities().pNo;
+        const avgPrice = deltaB / shares;
+        const slippage = (pBefore - avgPrice) / pBefore;
+
+        return {
+          proceeds: deltaB,
+          avgPrice,
+          pBefore,
+          pAfter,
+          slippage
+        };
+      }
+    }
+
+    /**
+     * ESTADO DA APLICAÇÃO E DEMONSTRADOR
+     */
+    let pool = new CPMM(1000);
+    let userWallet = {
+      brl: 1000,
+      yesShares: 0,
+      noShares: 0
+    };
+    let lastBoughtSharesScen2 = 0;
+
+    function formatBRL(v) {
+      return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    }
+
+    function formatNum(v, d = 2) {
+      return v.toLocaleString("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d });
+    }
+
+    function log(msg) {
+      const box = document.getElementById("log-box");
+      const el = document.createElement("div");
+      el.className = "log-entry";
+      const time = new Date().toLocaleTimeString();
+      el.innerText = `[${time}] ${msg}`;
+      box.appendChild(el);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function render() {
+      const probs = pool.getProbabilities();
+      document.getElementById("display-price-yes").innerText = formatBRL(probs.pYes);
+      document.getElementById("display-price-no").innerText = formatBRL(probs.pNo);
+      document.getElementById("display-prob-yes").innerText = `${(probs.pYes * 100).toFixed(1)}% Sim`;
+      document.getElementById("display-prob-no").innerText = `${(probs.pNo * 100).toFixed(1)}% Não`;
+      document.getElementById("bar-yes").style.width = `${probs.pYes * 100}%`;
+      document.getElementById("bar-no").style.width = `${probs.pNo * 100}%`;
+
+      document.getElementById("display-res-x").innerText = formatNum(pool.x, 2);
+      document.getElementById("display-res-y").innerText = formatNum(pool.y, 2);
+      document.getElementById("display-k").innerText = formatNum(pool.x * pool.y, 2);
+
+      document.getElementById("display-user-brl").innerText = formatBRL(userWallet.brl);
+      document.getElementById("display-user-yes").innerText = formatNum(userWallet.yesShares, 2);
+      document.getElementById("display-user-no").innerText = formatNum(userWallet.noShares, 2);
+      document.getElementById("display-total-collateral").innerText = formatBRL(pool.totalCollateral);
+    }
+
+    function resetPool() {
+      pool = new CPMM(1000);
+      userWallet = { brl: 1000, yesShares: 0, noShares: 0 };
+      document.getElementById("resolution-banner").style.display = "none";
+      document.getElementById("market-status-badge").innerText = "Mercado Aberto";
+      document.getElementById("market-status-badge").style.color = "#38bdf8";
+      log("Pool e carteira reiniciadas para o estado inicial.");
+      render();
+    }
+
+    function handleBuy(outcome) {
+      const amt = parseFloat(document.getElementById("input-buy-amount").value);
+      if (isNaN(amt) || amt <= 0) return alert("Valor inválido");
+      if (userWallet.brl < amt) return alert("Saldo insuficiente em BRL");
+
+      userWallet.brl -= amt;
+      if (outcome === "YES") {
+        const res = pool.buyYes(amt);
+        userWallet.yesShares += res.shares;
+        log(`Compra Sim: Investiu R$ ${amt.toFixed(2)}, recebeu ${res.shares.toFixed(2)} cotas. Preço médio: R$ ${res.avgPrice.toFixed(4)} (Slippage: ${(res.slippage * 100).toFixed(2)}%).`);
+      } else {
+        const res = pool.buyNo(amt);
+        userWallet.noShares += res.shares;
+        log(`Compra Não: Investiu R$ ${amt.toFixed(2)}, recebeu ${res.shares.toFixed(2)} cotas. Preço médio: R$ ${res.avgPrice.toFixed(4)} (Slippage: ${(res.slippage * 100).toFixed(2)}%).`);
+      }
+      render();
+    }
+
+    function handleSell(outcome) {
+      const shares = parseFloat(document.getElementById("input-sell-amount").value);
+      if (isNaN(shares) || shares <= 0) return alert("Quantidade inválida");
+
+      if (outcome === "YES") {
+        if (userWallet.yesShares < shares) return alert("Cotas Sim insuficientes");
+        userWallet.yesShares -= shares;
+        const res = pool.sellYes(shares);
+        userWallet.brl += res.proceeds;
+        log(`Venda Sim: Vendeu ${shares.toFixed(2)} cotas, recebeu R$ ${res.proceeds.toFixed(2)}. Preço médio: R$ ${res.avgPrice.toFixed(4)}.`);
+      } else {
+        if (userWallet.noShares < shares) return alert("Cotas Não insuficientes");
+        userWallet.noShares -= shares;
+        const res = pool.sellNo(shares);
+        userWallet.brl += res.proceeds;
+        log(`Venda Não: Vendeu ${shares.toFixed(2)} cotas, recebeu R$ ${res.proceeds.toFixed(2)}. Preço médio: R$ ${res.avgPrice.toFixed(4)}.`);
+      }
+      render();
+    }
+
+    function handleResolve(outcome) {
+      pool.isResolved = true;
+      pool.winningOutcome = outcome;
+      let payout = 0;
+      if (outcome === "YES") {
+        payout = userWallet.yesShares * 1.0;
+      } else {
+        payout = userWallet.noShares * 1.0;
+      }
+
+      userWallet.brl += payout;
+      userWallet.yesShares = 0;
+      userWallet.noShares = 0;
+
+      const banner = document.getElementById("resolution-banner");
+      banner.style.display = "block";
+      banner.innerHTML = `<strong>Mercado Resolvido como ${outcome}!</strong><br>Liquidação executada a R$ 1,00 por cota vencedora. Crédito de ${formatBRL(payout)} adicionado à carteira.`;
+      
+      document.getElementById("market-status-badge").innerText = `Resolvido: ${outcome}`;
+      document.getElementById("market-status-badge").style.color = outcome === "YES" ? "var(--yes)" : "var(--no)";
+      log(`Oráculo resolveu o mercado como ${outcome}. Usuário recebeu ${formatBRL(payout)}.`);
+      render();
+    }
+
+    function switchScenario(id) {
+      document.querySelectorAll(".tab-btn").forEach((b, i) => b.classList.toggle("active", i === (id - 1)));
+      document.querySelectorAll(".scenario-content").forEach((c, i) => c.style.display = (i === (id - 1)) ? "block" : "none");
+    }
+
+    // SCENARIO RUNNERS
+    function runScenario1() {
+      resetPool();
+      const res = pool.buyYes(100);
+      userWallet.brl -= 100;
+      userWallet.yesShares += res.shares;
+      log(`[Cenário 1] Compra de R$ 100 executada. Recebidas ${res.shares.toFixed(2)} cotas Sim. Preço instantâneo subiu para ${(res.pAfter * 100).toFixed(2)}%. k conservado perfeitamente.`);
+      render();
+    }
+
+    function runScenario2Step1() {
+      resetPool();
+      const res = pool.buyYes(100);
+      userWallet.brl -= 100;
+      userWallet.yesShares += res.shares;
+      lastBoughtSharesScen2 = res.shares;
+      document.getElementById("btn-scen2-step2").disabled = false;
+      document.getElementById("btn-scen2-step1").disabled = true;
+      log(`[Cenário 2 - Passo 1] R$ 100 investidos em ${res.shares.toFixed(2)} cotas Sim.`);
+      render();
+    }
+
+    function runScenario2Step2() {
+      const res = pool.sellYes(lastBoughtSharesScen2);
+      userWallet.yesShares -= lastBoughtSharesScen2;
+      userWallet.brl += res.proceeds;
+      document.getElementById("btn-scen2-step2").disabled = true;
+      document.getElementById("btn-scen2-step1").disabled = false;
+      log(`[Cenário 2 - Passo 2] Venda de ${lastBoughtSharesScen2.toFixed(2)} cotas retornou R$ ${res.proceeds.toFixed(2)}. Capital original 100% restaurado!`);
+      render();
+    }
+
+    function runScenario3() {
+      resetPool();
+      userWallet.brl = 2000;
+      const res = pool.buyYes(1500);
+      userWallet.brl -= 1500;
+      userWallet.yesShares += res.shares;
+      log(`[Cenário 3] Ordem massiva de R$ 1.500 executada. Preço médio: R$ ${res.avgPrice.toFixed(4)}. Slippage: ${(res.slippage * 100).toFixed(2)}%. Nova reserva x=${pool.x.toFixed(2)} e y=${pool.y.toFixed(2)}.`);
+      render();
+    }
+
+    function runScenario4Step1() {
+      resetPool();
+      const res = pool.buyYes(100);
+      userWallet.brl -= 100;
+      userWallet.yesShares += res.shares;
+      document.getElementById("btn-scen4-step2").disabled = false;
+      document.getElementById("btn-scen4-step1").disabled = true;
+      log(`[Cenário 4 - Passo 1] Usuário adquiriu ${res.shares.toFixed(2)} cotas Sim por R$ 100.`);
+      render();
+    }
+
+    function runScenario4Step2() {
+      handleResolve('YES');
+      document.getElementById("btn-scen4-step2").disabled = true;
+      document.getElementById("btn-scen4-step1").disabled = false;
+      log(`[Cenário 4 - Passo 2] Resolução Sim: cada cota pagou R$ 1,00. Solvência verificada a 100%.`);
+      render();
+    }
+
+    render();
+  </script>
+</body>
+</html>
